@@ -1,7 +1,7 @@
 
 import os
 from keras.models import Model
-from keras.layers import Input, Conv2D
+from keras.layers import Input, Conv2D, Conv3D, Lambda
 
 
 class V1:
@@ -64,3 +64,19 @@ class V2:
         h_conv3 = self.l_conv3(h_conv2)
         h_conv4 = self.l_conv4(h_conv3)
         self.model = Model(self.l_in, h_conv4)
+
+
+class V3:
+    def __init__(self):
+        """Model 3: (64, 36) -> 6x strided 1d convs - f=64, ks=2 -> 3"""
+        self.l_in = Input(shape=(None, None, 64, 36))
+        self.conv_layers = []
+        for i in range(6):
+            self.conv_layers.append(Conv3D(64, kernel_size=(1, 1, 2), strides=(1, 1, 2), activation='relu', kernel_initializer='he_normal'))
+        self.conv_layers.append(Conv3D(3, kernel_size=(1, 1, 1)))
+
+        h = self.l_in
+        for cl in self.conv_layers:
+            h = cl(h)
+        h_out = Lambda(lambda x: x[..., 0, :], output_shape=lambda s: s[:-2] + s[-1:])(h)
+        self.model = Model(self.l_in, h_out)
