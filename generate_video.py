@@ -8,8 +8,8 @@ import moviepy.editor as mvp
 from data import Data, get_rays, get_embedding
 
 
-model_path = 'models/m3.h5'
-video_path = 'videos/v3.mp4'
+model_path = 'models/m4.h5'
+video_path = 'videos/v4.mp4'
 model = load_model(model_path)
 
 data = Data('lego', 'test')
@@ -46,7 +46,18 @@ def gen_v3():
         save_img(path, y)
         frame_paths.append(path)
 
-gen_v3()
+def gen_v4():
+    for i, t in tqdm(enumerate(data.transforms), total=len(data.transforms)):
+        c2w = t['c2w_matrix']
+        cam_d = np.sum(np.array([[0, 0, -1]]) * c2w[:3, :3], -1)
+        cam_o = c2w[:3, -1]
+        x = np.concatenate((cam_o, cam_d), -1)
+        y = model.predict(x[np.newaxis, ...])[0]
+        path = 'video_frames/{}.png'.format(i)
+        save_img(path, y)
+        frame_paths.append(path)
+
+gen_v4()
 
 os.makedirs('videos', exist_ok=True)
 mvp.ImageSequenceClip(frame_paths, fps=30.0).write_videofile(video_path)

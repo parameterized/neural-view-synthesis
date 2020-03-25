@@ -26,7 +26,7 @@ def get_embedding(rays, n_freqs=10, n_steps=64, start=0, stop=6):
             embed_vals.append(np.sin(2**L * np.pi * points[..., [d]]))
     return np.concatenate(embed_vals, -1)
 
-def data_generator(data, batch_size=8, patch_size=8, random_rays=True):
+def ray_data_generator(data, batch_size=8, patch_size=8, random_rays=True):
     ps = patch_size
     while True:
         if random_rays:
@@ -70,19 +70,33 @@ def embedded_data_generator(data, batch_size=8, patch_size=8, random_rays=True, 
             batch_x = get_embedding(batch_rays, n_freqs, n_steps, start, stop)
         yield batch_x, batch_y
 
+def camera_data_generator(data, batch_size=8):
+    while True:
+        batch_x = np.zeros((batch_size, 6))
+        batch_y = np.zeros((batch_size, data.H, data.W, 3))
+        for b_idx in range(batch_size):
+            data_idx = np.random.randint(len(data.transforms))
+            c2w = data.transforms[data_idx]['c2w_matrix']
+            cam_d = np.sum(np.array([[0, 0, -1]]) * c2w[:3, :3], -1)
+            cam_o = c2w[:3, -1]
+            batch_x[b_idx] = np.concatenate((cam_o, cam_d), -1)
+            batch_y[b_idx] = data.imgs[data_idx]
+        yield batch_x, batch_y
+
+
 class Data:
-    def __init__(self, scene='lego', mode='train'):
+    def __init__(self, scene='lego', mode='train', resize=None):
         """Load data
 
         scene: 'lego'
         mode: 'train', 'test', 'val'
+        resize: None or value for width & height (ex: 512)
         """
 
         data_path = 'data/{}/{}'.format(scene, mode)
         self.imgs = []
         for i in range(100):
-            img = load_img('{}/r_{}.png'.format(data_path, i))
-            self.imgs.append(img_to_array(img) / 255.)
+            self.imgs.append(load_img('{}/r_{}.png'.format(data_path, i)))
 
         with open('data/{}/transforms_{}.json'.format(scene, mode), 'r') as f:
             transforms_json = json.load(f)
@@ -93,7 +107,14 @@ class Data:
             'c2w_matrix': np.array(v['transform_matrix'])
         } for v in transforms_json['frames']]
 
-        self.H, self.W = self.imgs[0].shape[:2]
+        if resize == None:
+            self.W, self.H = self.imgs[0].size
+        else:
+            self.W, self.H = resize, resize
+            self.imgs = [img.resize((self.W, self.H)) for img in self.imgs]
+
+        self.imgs = [img_to_array(img) / 255. for img in self.imgs]
+
         self.focal = 0.5 * self.W / np.tan(0.5 * self.camera_angle_x)
         self.near = 2.
         self.far = 6.
