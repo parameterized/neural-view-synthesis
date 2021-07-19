@@ -1,6 +1,8 @@
 
 camera = require 'camera'
-renderer = require 'renderer'
+_renderer = require 'renderer'
+shtest = require 'shtest'
+renderer = _renderer
 
 ssx, ssy = love.graphics.getDimensions()
 
@@ -21,7 +23,8 @@ fonts = {
 function love.load()
     camera.load()
     renderer.load()
-    fpsLimit = 60
+    shtest.load()
+    fpsLimit = -60
     fpsTimer = 0
 end
 
@@ -60,6 +63,9 @@ function love.keypressed(k, scancode, isRepeat)
         love.event.quit()
     elseif k == 'r' then
         camera.load()
+        renderer.load()
+    elseif k == 'tab' then
+        renderer = renderer == _renderer and shtest or _renderer
     end
 end
 
