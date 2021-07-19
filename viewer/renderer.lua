@@ -6,19 +6,22 @@ local function nc32(w, h)
 end
 
 function renderer.load()
-    renderer.canvases = {nc32(256 * 13, 256)}
+    rx = ssx / 4
+    ry = ssy / 4
+    renderer.canvases = {nc32(rx * 13, ry)}
     renderer.shaders = {love.graphics.newShader('shaders/x.glsl')}
-    renderer.shaders[1]:send('screenSize', { 256, 256 })
+    renderer.shaders[1]:send('screenSize', { rx, ry })
     nFeats = 64
     for i=1, 6 do
         if i == 6 then
-            table.insert(renderer.canvases, love.graphics.newCanvas(256, 256))
+            table.insert(renderer.canvases, love.graphics.newCanvas(rx, ry))
         else
-            table.insert(renderer.canvases, nc32(256 * 64 / 4, 256))
+            table.insert(renderer.canvases, nc32(rx * nFeats / 4, ry))
         end
         table.insert(renderer.shaders, love.graphics.newShader('shaders/l' .. i-1 .. '.glsl'))
-        renderer.shaders[#renderer.shaders]:send('screenSize', { 256, 256 })
+        renderer.shaders[#renderer.shaders]:send('screenSize', { rx, ry })
     end
+    renderer.canvases[#renderer.canvases]:setFilter('linear', 'linear')
 end
 
 function renderer.updateImage()
@@ -47,7 +50,7 @@ end
 function renderer.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(renderer.canvases[#renderer.canvases],
-        ssx / 2, ssy / 2, 0, 2, 2, 128, 128)
+        ssx / 2, ssy / 2, 0, 4, 4, ssx / 8, ssy / 8)
 end
 
 return renderer

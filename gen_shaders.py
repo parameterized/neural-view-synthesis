@@ -22,7 +22,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
     int channelGroup = int(screen_coords.x / screenSize.x);
     vec2 uv = mod(screen_coords, screenSize) / screenSize;
     uv -= 0.5;
-    uv.x = -uv.x;
+    uv.x = -uv.x * screenSize.x / screenSize.y;
     mat3 ca = setCamera(camPos, camTarget, 0.0);
     vec3 ro = camPos;
     vec3 rd = ca * normalize(vec3(uv, 1.0));
@@ -88,9 +88,9 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
                     weights = w[i * 4 + j]
                     s += f'\t\tfloat c{j} = ' \
                     + '+'.join([
-                        f'h{k // 4}[{k % 4}]*({v})'
+                        f'h{k // 4}[{k % 4}]*({v:.8f})'
                         for k, v in enumerate(weights)]) \
-                    + f'+({b[i * 4 + j]});\n'
+                    + f'+({b[i * 4 + j]:.8f});\n'
             if layer == model.layers[-1]:
                 s += """\t\treturn clamp(vec4(c0, c1, c2, c3), 0.0, 1.0);
     } else """

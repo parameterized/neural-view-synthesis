@@ -1,8 +1,6 @@
 
 camera = require 'camera'
-_renderer = require 'renderer'
-shtest = require 'shtest'
-renderer = _renderer
+renderer = require 'renderer'
 
 ssx, ssy = love.graphics.getDimensions()
 
@@ -15,16 +13,10 @@ love.graphics.setDefaultFilter('nearest', 'nearest')
 canvases = {}
 shaders = {}
 
-fonts = {
-    f24 = love.graphics.newFont(24),
-    f32 = love.graphics.newFont(32)
-}
-
 function love.load()
     camera.load()
     renderer.load()
-    shtest.load()
-    fpsLimit = -60
+    fpsLimit = 0
     fpsTimer = 0
 end
 
@@ -63,9 +55,6 @@ function love.keypressed(k, scancode, isRepeat)
         love.event.quit()
     elseif k == 'r' then
         camera.load()
-        renderer.load()
-    elseif k == 'tab' then
-        renderer = renderer == _renderer and shtest or _renderer
     end
 end
 

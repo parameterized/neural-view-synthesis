@@ -5,16 +5,16 @@ function camera.load()
 	camera.pos = { x=-3.7, y=-1.6, z=-0.3 }
 	camera.rot = { x=0, y=0.2, z=0 }
     camera.target = nil -- set in update
-    camera.moveSpeed = 2
+    camera.moveSpeed = 20
     camera.turnSpeed = 1 / 200
 end
 
 function camera.update(dt)
     local speed = camera.moveSpeed
     if love.keyboard.isScancodeDown('lctrl') then
-        speed = speed / 6
+        speed = speed / 4
     elseif love.keyboard.isScancodeDown('lshift') then
-        speed = speed * 6
+        speed = speed * 4
     end
 
 	if love.keyboard.isScancodeDown('space') then
